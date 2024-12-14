@@ -103,7 +103,7 @@ namespace UpdateMyApp
         private void LbLinkUpdate_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             // Specify that the link was visited.
-            this.lbLinkUpdate.LinkVisited = true;
+           // this.lbLinkUpdate.LinkVisited = true;
 
             // Navigate to a URL.
             if (!string.IsNullOrEmpty(_updateVersion.UrlInfo))
