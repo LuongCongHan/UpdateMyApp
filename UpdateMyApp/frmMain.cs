@@ -12,7 +12,6 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Net;
 
 namespace UpdateMyApp
 {
@@ -21,7 +20,6 @@ namespace UpdateMyApp
         public frmMain()
         {
             InitializeComponent();
-            _frmUpdateInfo.btnUpdate.Click += BtnUpdate_frmUpdateInfo_Click;
             delayTimer.Tick += DelayTimer_Tick;
         }
         frmDownloadAndExtract _frmDownloadAndExtract = new frmDownloadAndExtract();
@@ -32,29 +30,26 @@ namespace UpdateMyApp
             _frmDownloadAndExtract._toTalLengthUnzip = _frmUpdateInfo._totalDownloadSize;
             //Download here
             _frmDownloadAndExtract.StartPosition = FormStartPosition.CenterParent;
-            _frmDownloadAndExtract.ShowDialog(this);
-            if (_frmDownloadAndExtract.isStartNewUpdate)
+            if (_frmDownloadAndExtract.ShowDialog(this) == DialogResult.OK)
             {
                 this.Close();
             }
         }
 
-        Timer delayTimer = new Timer() { Interval=500};
-        private void BtnUpdate_frmUpdateInfo_Click(object sender, EventArgs e)
-        {
-            _frmUpdateInfo.Close();
-            delayTimer.Start();
-        }
+        Timer delayTimer = new Timer() { Interval = 500 };
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            lbCurrentVersion.Text = this.ProductVersion;
+            lbCurrentVersion.Text += this.ProductVersion;
         }
         frmUpdateInfo _frmUpdateInfo = new frmUpdateInfo();
         private void btnCheckUpdate_Click(object sender, EventArgs e)
         {
             _frmUpdateInfo.StartPosition = FormStartPosition.CenterParent;
-            _frmUpdateInfo.ShowDialog(this);
+            if (_frmUpdateInfo.ShowDialog(this) == DialogResult.OK)
+            {
+                delayTimer.Start();
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -120,7 +115,7 @@ namespace UpdateMyApp
         }
         public static string DisplayDnsAddresses()
         {
-            string txt=null;
+            string txt = null;
             NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
             foreach (NetworkInterface adapter in adapters)
             {
@@ -132,13 +127,12 @@ namespace UpdateMyApp
                     Console.WriteLine(adapter.Description);
                     foreach (IPAddress dns in dnsServers)
                     {
-                        txt += "  DNS Servers ............................. :" + dns.ToString() +Environment.NewLine;
+                        txt += "  DNS Servers ............................. :" + dns.ToString() + Environment.NewLine;
                     }
                 }
             }
             return txt;
         }
-
         private void timer1_Tick(object sender, EventArgs e)
         {
             MessageBox.Show("sau 5s");
@@ -153,5 +147,6 @@ namespace UpdateMyApp
         {
             timer1.Stop();
         }
+
     }
 }

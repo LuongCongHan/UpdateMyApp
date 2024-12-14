@@ -1,6 +1,7 @@
 ﻿{
   "Version": "4.0.0.2",
-  "Url": "https://github.com/LuongCongHan/UpdateMyApp/releases/download/MucTagVer2/AllFile.zip",
-  "fileName": "setup3v0v0v2",
-  "fileExtension": "*.exe"
+  "UrlDownload": "https://github.com/LuongCongHan/UpdateMyApp/releases/download/MucTagVer2/AllFile.zip",
+  "FileName": "setup3v0v0v2",
+  "FileExtension": "*.exe",
+  "UrlInfo": "https://sites.google.com/view/luongconghan"
 }

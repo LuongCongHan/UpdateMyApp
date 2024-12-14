@@ -22,7 +22,7 @@ namespace UpdateMyApp
         {
             InitializeComponent();
             lbPercent.MaximumSize = new Size(this.Size.Width - lbPercent.Location.X - 30, 0);
-            label1.MaximumSize = new Size(this.Size.Width - lbPercent.Location.X - 30, 0);
+            label1.MaximumSize = new Size(this.Size.Width - label1.Location.X - 30, 0);
             this.MaximizeBox = false;//Ngăn không cho phóng to form khi nhấn đúp vào thanh điêu đề ( title bar)
             methodInvoker = new MethodInvoker(() =>
             {
@@ -81,12 +81,12 @@ namespace UpdateMyApp
                 //Nếu không nó cứ đứng yên suốt
                 //Nếu sau 10s từ lúc tắt mạng trước khi bật tải lên thì bắt được lỗi tại "catch (TaskCanceledException taskEx)" 
                 using (HttpClient _httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(2) })
-                    streamTest = await _httpClient.GetStreamAsync(_updateVersion.Url);
+                    streamTest = await _httpClient.GetStreamAsync(_updateVersion.UrlDownload);
                 
                 //await Task.Delay(10000);
 
                 //Tạo đường link thư mục  temp/{4542C1F4-61C7-4C0D-A6EC-E805411B8184}/download.zip
-                _downloadZipPath = Path.Combine(path, Path.GetFileName(_updateVersion.Url));
+                _downloadZipPath = Path.Combine(path, Path.GetFileName(_updateVersion.UrlDownload));
                 fileStream = File.Create(_downloadZipPath); //Tạo file download.zip
 
                 tcs = new TaskCompletionSource<object>();
@@ -193,7 +193,6 @@ namespace UpdateMyApp
             });
         }
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        private CancellationTokenSource _cancellationTokenSourceCopy = new CancellationTokenSource();
         public bool isStartNewUpdate = false;
         private async void frmDownloadAndExtract_Load(object sender, EventArgs e)
         {
@@ -219,15 +218,12 @@ namespace UpdateMyApp
             _currentIndexLength = 0; //Đặt lại số tệp tin trong file
             if (isDownloaded) //Nếu tải thành công
             {
+                isStopRefresh = false;
                 //Giải nén file
                 _toTalLengthUnzip = 0;//Đặt lại dung lượng tổng trước khi extract
                 await Task.Delay(500);// Delay 0.5s rồi tiến hành Extract
                 label1.Text = "Uncompressing...";
 
-                ///////// test 
-                // if (_cancellationTokenSource == null || _cancellationTokenSource.IsCancellationRequested)
-                //_cancellationTokenSource = new CancellationTokenSource();
-                //_cancellationTokenSource.Cancel();
 
                 //Tiến hành Extract
                 bool isExtracted = await ExtractAsync(); //Trong này đã kèm quá trình thanh tiến trình
@@ -238,13 +234,14 @@ namespace UpdateMyApp
                                            //var exeFiles = Directory.EnumerateFiles(pathFolder, "*.exe", SearchOption.TopDirectoryOnly).ToArray();
                                            //var exeFiles = Directory.EnumerateFiles(pathFolder, _updateVersion.fileExtension, SearchOption.TopDirectoryOnly).ToArray();
 
-                    var exeFiles = Directory.EnumerateFiles(pathFolder, _updateVersion.fileExtension, SearchOption.TopDirectoryOnly).ToArray();
+                    var exeFiles = Directory.EnumerateFiles(pathFolder, _updateVersion.FileExtension, SearchOption.TopDirectoryOnly).ToArray();
 
                     if (exeFiles != null && exeFiles.Length > 0 && 
-                        Path.GetFileNameWithoutExtension(exeFiles[0])==_updateVersion.fileName  && !isClickCancelOrClose)
+                        Path.GetFileNameWithoutExtension(exeFiles[0])==_updateVersion.FileName  && !isClickCancelOrClose)
                     {
 
                         Process.Start(exeFiles[0]);
+                        DialogResult = DialogResult.OK;
                         isStartNewUpdate = true; //Bắt đầu chạy version mới
                         this.Close();
                     }
@@ -351,10 +348,10 @@ namespace UpdateMyApp
                             if (isClickCancelOrClose) return false;
 
                         }
-                        catch (Exception ex)
+                        catch
                         {
                             //MessageBox.Show(ex.Message);
-                            label1.Text = ex.Message + " " + ex.HResult;
+                           // label1.Text = ex.Message + " " + ex.HResult;
                             return false;
                         }
                     }

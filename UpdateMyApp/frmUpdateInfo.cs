@@ -18,7 +18,6 @@ namespace UpdateMyApp
         public frmUpdateInfo()
         {
             InitializeComponent();
-            _httpClient.Timeout = TimeSpan.FromSeconds(3);
             lbLinkUpdate.LinkClicked += LbLinkUpdate_LinkClicked;
             lbLinkUpdate.MaximumSize = new Size(this.Size.Width - lbLinkUpdate.Location.X - 30, 0);
             lbLinkUpdate.AutoSize = true;
@@ -48,7 +47,7 @@ namespace UpdateMyApp
             lbSize.Visible = false;
             picLoad.Visible = true;
             btnUpdate.Visible = false;
-            lbLinkUpdate.LinkArea = new LinkArea(0,0);
+            lbLinkUpdate.LinkArea = new LinkArea(0, 0);
             //timerCheckUpdate.Stop();
             //Check update
             try
@@ -65,10 +64,14 @@ namespace UpdateMyApp
                     lbSize.Visible = true;
                     picLoad.Visible = false;
 
-                    using (HttpResponseMessage headResponse = await _httpClient.GetAsync(_updateVersion.Url, HttpCompletionOption.ResponseHeadersRead))
+
+                    //Sẽ có trường hợp không bật 1.1.1.1 thì tải không được ở đây- có thể do mạng -sau 3s nhảy xuống catch 
+                    //3s đã đặt timeout cho _httpClient
+                    using (HttpResponseMessage headResponse = await _httpClient.GetAsync(_updateVersion.UrlDownload, HttpCompletionOption.ResponseHeadersRead))
                     {
                         _totalDownloadSize = headResponse.Content.Headers.ContentLength;
                     }
+
                     //Giải quyết vấn đề bộ nhớ tăng
                     double mb = (double)(_totalDownloadSize / Math.Pow(2, 20));
                     lbSize.Text = string.Format("Download size: {0} MB", mb.ToString("F2"));
@@ -77,6 +80,7 @@ namespace UpdateMyApp
                 }
                 else
                 {
+                    //  DialogResult = DialogResult.No;
                     picLoad.Visible = false;
                     lbLinkUpdate.Visible = true;
                     btnUpdate.Visible = false;
@@ -86,7 +90,8 @@ namespace UpdateMyApp
             }
             catch
             {
-                await Task.Delay(500);
+                // DialogResult = DialogResult.No;
+                //await Task.Delay(500);
                 picLoad.Visible = false;
                 lbSize.Visible = false;
                 lbLinkUpdate.LinkArea = new LinkArea(0, 0);
@@ -97,19 +102,24 @@ namespace UpdateMyApp
         }
         private void LbLinkUpdate_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            MessageBox.Show("down");
+            // Specify that the link was visited.
+            this.lbLinkUpdate.LinkVisited = true;
+
+            // Navigate to a URL.
+            if (!string.IsNullOrEmpty(_updateVersion.UrlInfo))
+                System.Diagnostics.Process.Start(_updateVersion.UrlInfo);
         }
-        HttpClient _httpClient = new HttpClient();
-      public  UpdateVersion _updateVersion = new UpdateVersion();
+        HttpClient _httpClient = new HttpClient() { Timeout = TimeSpan.FromMilliseconds(3000) };
+        public UpdateVersion _updateVersion = new UpdateVersion();
         public async Task<bool> CheckUpdateAsync()
         {
-            
-           // string updateJson = await _httpClient.GetStringAsync("https://raw.githubusercontent.com/LuongCongHan/TepVip6/master/WindowsFormsApp40/update.json");
+
+            // string updateJson = await _httpClient.GetStringAsync("https://raw.githubusercontent.com/LuongCongHan/TepVip6/master/WindowsFormsApp40/update.json");
             string updateJson = await _httpClient.GetStringAsync("https://raw.githubusercontent.com/LuongCongHan/UpdateMyApp/refs/heads/master/UpdateMyApp/update.json");
             //Chuyển đổi Version về dạng dữ liệu đối tượng
             _updateVersion = JsonConvert.DeserializeObject<UpdateVersion>(updateJson);
-        //    _updateVersion.Url = "https://github.com/LuongCongHan/MyAppUpdate/releases/download/File/AllFile.zip";
-           // _updateVersion.Url = "https://github.com/LuongCongHan/TestUpdateUngDung/releases/download/newVd/LenhDk.zip";
+            //    _updateVersion.Url = "https://github.com/LuongCongHan/MyAppUpdate/releases/download/File/AllFile.zip";
+            // _updateVersion.Url = "https://github.com/LuongCongHan/TestUpdateUngDung/releases/download/newVd/LenhDk.zip";
             var currentVersion = new Version(this.ProductVersion);
             var jsonVersion = new Version(_updateVersion.Version);
             //So sánh Version
@@ -122,6 +132,13 @@ namespace UpdateMyApp
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
+            //  DialogResult = DialogResult.No;
+            this.Close();
+        }
+
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.OK;
             this.Close();
         }
     }
